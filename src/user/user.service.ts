@@ -56,14 +56,14 @@ export class UserService {
   /**
    * Obtener un usuario por ID
    */
-  async findOne(id: number): Promise<User[]> {
+  async findOne(id: number): Promise<User> {
     const user = await this.userRepository.findOne({ where: { id } });
-    
+
     if (!user) {
       throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
     }
-    
-    return [user];
+
+    return user;
   }
 
   /**
@@ -80,7 +80,7 @@ export class UserService {
   /**
    * Actualizar un usuario
    */
-  async update(id: number, updateUserDto: UpdateUserDto): Promise <User[]> {
+  async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
     const user = await this.findOne(id);
 
     // Si se actualiza la contraseña, encriptarla
