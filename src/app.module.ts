@@ -1,19 +1,14 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-
 import { PagoModule } from './pago/pago.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 
-        
-
-
 @Module({
-  imports: [ PagoModule,
-    
+  imports: [
     // Configuración de variables de entorno
     // isGlobal: true hace que ConfigModule esté disponible en toda la app
     ConfigModule.forRoot({
@@ -38,14 +33,10 @@ import { AuthModule } from './auth/auth.module';
       inject: [ConfigService],
     }),
 
-    UserModule,
-
-    AuthModule,
-
-    
-
     // Módulos de la aplicación
-    
+    PagoModule,
+    UserModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

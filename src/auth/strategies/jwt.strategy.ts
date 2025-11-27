@@ -1,42 +1,40 @@
+// src/modules/auth/strategies/jwt.strategy.ts
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
+import { ConfigService } from '@nestjs/config';
 import { UserService } from '../../user/user.service';
-import { JwtPayload } from '../interfaces/jwt-payload.interface';
+
+export interface JwtPayload {
+  sub: number;
+  email: string;
+  role: string;
+}
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
-    private readonly userService: UserService,
     private readonly configService: ConfigService,
+    private readonly usersService: UserService,
   ) {
     super({
-      // Extraer el token del header Authorization como Bearer token
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      // No ignorar la expiración del token
       ignoreExpiration: false,
-      // Secreto para verificar el token
-      secretOrKey: configService.get('JWT_SECRET'),
+      secretOrKey: configService.get<string>('jwt.secret') || 'default-secret',
     });
   }
 
-  /**
-   * Método que se ejecuta automáticamente después de validar el token
-   * El payload ya viene decodificado por Passport
-   */
   async validate(payload: JwtPayload) {
-    const { sub: id } = payload;
+    const user = await this.usersService.findOne(payload.sub);
 
-    // Buscar el usuario en la base de datos
-    const user = await this.userService.findOne(id);
-
-    // Verificar si el usuario está activo
-    if (!user.isActive) {
-      throw new UnauthorizedException('Usuario inactivo');
+    if (!user || !user.isActive) {
+      throw new UnauthorizedException('Usuario no autorizado');
     }
 
-    // Retornar el usuario (se agregará a request.user)
-    return user;
+    return {
+      userId: payload.sub,
+      email: payload.email,
+      role: payload.role,
+    };
   }
 }
